@@ -108,7 +108,7 @@ EVILWM_CPPFLAGS = $(CPPFLAGS) $(OPT_CPPFLAGS) -DVERSION=\"$(version)\" \
 	-D_POSIX_C_SOURCE=200112L
 EVILWM_CFLAGS = -std=c99 $(CFLAGS) $(WARN)
 EVILWM_LDFLAGS = $(LDFLAGS)
-EVILWM_LDLIBS = -lX11 $(OPT_LDLIBS) $(LDLIBS)
+EVILWM_LDLIBS = -lm -lX11 $(OPT_LDLIBS) $(LDLIBS)
 
 HEADERS = evilwm.h keymap.h list.h log.h xconfig.h
 OBJS = client.o events.o ewmh.o list.o main.o misc.o new.o screen.o xconfig.o
