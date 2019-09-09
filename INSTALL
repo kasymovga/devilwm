@@ -1,4 +1,4 @@
-BUILDING EVILWM
+BUILDING DEVILWM
 
 1) Edit Makefile to include the options you need (most people will not need
    to do this).  Instructions are included by any user-editable option.
