@@ -1,13 +1,13 @@
 <html>
 
 <head>
-<title>evilwm - standards support</title>
+<title>devilwm - standards support</title>
 </head>
 
 <body>
-<h1>evilwm standards support</h1>
+<h1>devilwm standards support</h1>
 
-<p>evilwm (1.1 pre-release) supports a subset of the
+<p>devilwm (1.2 pre-release) supports a subset of the
 <a href='http://www.freedesktop.org/'>X Desktop Group</a>'s
 <a href='http://standards.freedesktop.org/wm-spec/wm-spec-1.3.html'>Extended
 Window Manager Hints (EWMH), version 1.3</a>.  This page lists what is
@@ -27,7 +27,7 @@ resolved.</p>
 
 <dt>_NET_SUPPORTED</dt>
 <dd>This property is set on each managed root window, and lists all EWMH atoms
-used within evilwm. This includes all the relevant _NET_WM_ACTION atoms,
+used within devilwm. This includes all the relevant _NET_WM_ACTION atoms,
 although I'm not sure it makes sense to include those, as they get listed under
 the similar per-client _NET_WM_ALLOWED_ACTIONS property.</dd>
 
@@ -35,7 +35,7 @@ the similar per-client _NET_WM_ALLOWED_ACTIONS property.</dd>
 <dd>_NET_CLIENT_LIST and _NET_CLIENT_LIST_STACKING are kept up to date.</dd>
 
 <dt>_NET_NUMBER_OF_DESKTOPS</dt>
-<dd>This is currently always set to 8 (the number of virtual desktops evilwm
+<dd>This is currently always set to 8 (the number of virtual desktops devilwm
 has historically supported).  Clients cannot yet alter this value, though I
 intend to add that ability.</dd>
 
@@ -59,7 +59,7 @@ of direct user action.</dd>
 calculate anything based on struts).</dd>
 
 <dt>_NET_SUPPORTING_WM_CHECK</dt>
-<dd>Will refer to evilwm's supporting window.</dd>
+<dd>Will refer to devilwm's supporting window.</dd>
 
 </dl>
 
@@ -80,7 +80,7 @@ action.</dd>
 action.</dd>
 
 <dt>_NET_REQUEST_FRAME_EXTENTS</dt>
-<dd>evilwm always estimates the configured border width for each frame edge.  A
+<dd>devilwm always estimates the configured border width for each frame edge.  A
 better value could be determined by analysing the window hints in the same way
 as creating a new window, but it's only got to be an estimate, so I've not done
 that yet.</dd>
@@ -92,7 +92,7 @@ that yet.</dd>
 <dl>
 
 <dt>_NET_WM_NAME</dt>
-<dd>This is set to "evilwm" on the supporting window, but not currently
+<dd>This is set to "devilwm" on the supporting window, but not currently
 consulted for client window titles (the title in WM_NAME is used instead).</dd>
 
 <dt>_NET_WM_DESKTOP</dt>
@@ -105,7 +105,7 @@ to change a window's current virtual desktop.</dd>
 <dd>These window types affect behaviour:
    <dl>
    <dt>_NET_WM_WINDOW_TYPE_DESKTOP</dt>
-   <dd>evilwm ignores windows of this type, allowing them to act as a fake
+   <dd>devilwm ignores windows of this type, allowing them to act as a fake
    root window (e.g., Nautilus).</dd>
    <dt>_NET_WM_WINDOW_TYPE_DOCK</dt>
    <dd>Applications that declare themselves to be a dock can have their
@@ -122,7 +122,7 @@ to change a window's current virtual desktop.</dd>
    <dd>Advertised but never set: pagers should show "Iconic" windows (on other
    virtual desktops) that don't have _NET_WM_STATE_HIDDEN set.</dd>
    <dt>_NET_WM_STATE_FULLSCREEN</dt>
-   <dd>Currently, as evilwm does not calculate any sort of "work area", the
+   <dd>Currently, as devilwm does not calculate any sort of "work area", the
    fullscreen hint is considered equivalent to having both the vertically and
    horizontally maximised hints set.  These hints are respected on initial
    management of a window, and clients can send _NET_WM_STATE messages
@@ -163,10 +163,10 @@ client.</dd>
 <dl>
 <dt>_NET_DESKTOP_NAMES</dt>
 <dt>_NET_VIRTUAL_ROOTS</dt>
-<dd>evilwm does not use virtual root windows.</dd>
+<dd>devilwm does not use virtual root windows.</dd>
 <dt>_NET_DESKTOP_LAYOUT</dt>
 <dt>_NET_SHOWING_DESKTOP</dt>
-<dd>evilwm does not have a "showing the desktop" mode.</dd>
+<dd>devilwm does not have a "showing the desktop" mode.</dd>
 </dl>
 
 <dl>
@@ -178,7 +178,7 @@ client.</dd>
 <dd>The real WM_NAME is displayed when requested.</dd>
 <dt>_NET_WM_ICON_NAME</dt>
 <dt>_NET_WM_VISIBLE_ICON_NAME</dt>
-<dd>evilwm does not support iconification.</dd>
+<dd>devilwm does not support iconification.</dd>
 <dt>_NET_WM_WINDOW_TYPE</dt>
 <dd>These window types are unsupported:
    <dl>
@@ -216,7 +216,7 @@ client.</dd>
 <dt>_NET_WM_ICON_GEOMETRY</dt>
 <dt>_NET_WM_ICON</dt>
 <dt>_NET_WM_HANDLED_ICONS</dt>
-<dd>evilwm does not support iconification.</dd>
+<dd>devilwm does not support iconification.</dd>
 <dt>_NET_WM_USER_TIME</dt>
 </dl>
 

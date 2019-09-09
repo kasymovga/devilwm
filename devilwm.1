@@ -1,8 +1,8 @@
-.TH evilwm 1 "October 13, 2010" "" ""
+.TH devilwm 1 "October 13, 2010" "" ""
 .SH NAME
-evilwm \- Minimalist Window Manager for X
+devilwm \- Minimalist Window Manager for X
 .SH SYNOPSIS
-\fBevilwm\fP
+\fBdevilwm\fP
 [ \fB\-display\fP \fIdisplay\fP ]
 [ \fB\-term\fP \fItermprog\fP ]
 [ \fB\-term2\fP \fItermprog2\fP ]
@@ -23,12 +23,12 @@ evilwm \- Minimalist Window Manager for X
 [ \fB\-nosoliddrag\fP ]
 [ \fB\-V\fP ]
 .SH DESCRIPTION
-.B evilwm
+.B devilwm
 is a minimalist window manager based on aewm, extended to feature
 many keyboard controls, and otherwise altered to be more friendly.
 .PP
 In
-.BR evilwm ,
+.BR devilwm ,
 the focus follows the mouse pointer, and focus is not lost if
 you stray onto the root window.  The current window border is shaded
 gold, with other windows left as a dark grey.
@@ -184,18 +184,20 @@ draw a window outline while moving or resizing.
 \-V
 print version number.
 .PP
-.B evilwm
-will also read options, one per line, from a file called \fI.evilwmrc\fP
+.B devilwm
+will also read options, one per line, from a file called \fI.devilwmrc\fP
 in the user's home directory.
 Options listed in a configuration file should omit the leading dash.
 Options specified on the command line override those found in the
 configuration file.
 .SH FILES
-.I $HOME/.evilwmrc
+.I $HOME/.devilwmrc
 .SH BUGS
 The author's idea of friendly may differ to that of many other people.
 .SH AUTHOR
-Ciaran Anscomb <evilwm@6809.org.uk>.
+Grigorii Kasymov <kasymovga@gmail.com>
+.br
+evilwm was written by Ciaran Anscomb <evilwm@6809.org.uk>.
 .br
 aewm was written by Decklin Foster <fosterd@hartwick.edu>.
 .br

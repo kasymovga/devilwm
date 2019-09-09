@@ -30,7 +30,7 @@ int         have_randr, randr_event_base;
 #endif
 
 /* Things that affect user interaction */
-#define CONFIG_FILE ".evilwmrc"
+#define CONFIG_FILE ".devilwmrc"
 static const char   *opt_display = "";
 static const char   *opt_font = DEF_FONT;
 static const char   *opt_fg = DEF_FG;

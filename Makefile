@@ -97,8 +97,8 @@ INSTALL_PROGRAM = $(INSTALL) -m 0755 $(INSTALL_STRIP)
 ############################################################################
 # You shouldn't need to change anything beyond this point
 
-version = 1.1.1
-distname = evilwm-$(version)
+version = 1.2
+distname = devilwm-$(version)
 
 # Generally shouldn't be overridden:
 #  _SVID_SOURCE for strdup and putenv
@@ -114,30 +114,30 @@ HEADERS = evilwm.h keymap.h list.h log.h xconfig.h
 OBJS = client.o events.o ewmh.o list.o main.o misc.o new.o screen.o xconfig.o
 
 .PHONY: all
-all: evilwm$(EXEEXT)
+all: devilwm$(EXEEXT)
 
 $(OBJS): $(HEADERS)
 
 %.o: %.c
 	$(CC) $(EVILWM_CFLAGS) $(EVILWM_CPPFLAGS) -c $<
 
-evilwm$(EXEEXT): $(OBJS)
+devilwm$(EXEEXT): $(OBJS)
 	$(CC) -o $@ $(OBJS) $(EVILWM_LDFLAGS) $(EVILWM_LDLIBS)
 
 .PHONY: install
-install: evilwm$(EXEEXT)
+install: devilwm$(EXEEXT)
 	$(INSTALL_DIR) $(DESTDIR)$(bindir)
-	$(INSTALL_PROGRAM) evilwm$(EXEEXT) $(DESTDIR)$(bindir)/
+	$(INSTALL_PROGRAM) devilwm$(EXEEXT) $(DESTDIR)$(bindir)/
 	$(INSTALL_DIR) $(DESTDIR)$(man1dir)
-	$(INSTALL_FILE) $(src_dir)/evilwm.1 $(DESTDIR)$(man1dir)/
+	$(INSTALL_FILE) $(src_dir)/devilwm.1 $(DESTDIR)$(man1dir)/
 	$(INSTALL_DIR) $(DESTDIR)$(desktopfilesdir)
-	$(INSTALL_FILE) $(src_dir)/evilwm.desktop $(DESTDIR)$(desktopfilesdir)/
+	$(INSTALL_FILE) $(src_dir)/devilwm.desktop $(DESTDIR)$(desktopfilesdir)/
 
 .PHONY: uninstall
 uninstall:
-	rm -f $(DESTDIR)$(bindir)/evilwm$(EXEEXT)
-	rm -f $(DESTDIR)$(man1dir)/evilwm.1
-	rm -f $(DESTDIR)$(desktopfilesdir)/evilwm.desktop
+	rm -f $(DESTDIR)$(bindir)/devilwm$(EXEEXT)
+	rm -f $(DESTDIR)$(man1dir)/devilwm.1
+	rm -f $(DESTDIR)$(desktopfilesdir)/devilwm.desktop
 
 .PHONY: dist
 dist:
@@ -147,11 +147,11 @@ dist:
 .PHONY: debuild
 debuild: dist
 	-cd ..; rm -rf $(distname)/ $(distname).orig/
-	cd ..; mv $(distname).tar.gz evilwm_$(version).orig.tar.gz
-	cd ..; tar xfz evilwm_$(version).orig.tar.gz
+	cd ..; mv $(distname).tar.gz devilwm_$(version).orig.tar.gz
+	cd ..; tar xfz devilwm_$(version).orig.tar.gz
 	rsync -axH debian --exclude='debian/.git/' --exclude='debian/_darcs/' ../$(distname)/
 	cd ../$(distname); debuild
 
 .PHONY: clean
 clean:
-	rm -f evilwm$(EXEEXT) $(OBJS)
+	rm -f devilwm$(EXEEXT) $(OBJS)
