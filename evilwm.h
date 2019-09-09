@@ -41,7 +41,7 @@ typedef struct {
 
 /* default settings */
 
-#define DEF_FONT        "variable"
+#define DEF_FONT        "fixed"
 #define DEF_FG          "goldenrod"
 #define DEF_BG          "grey50"
 #define DEF_BW          1
@@ -49,8 +49,10 @@ typedef struct {
 #define SPACE           3
 #ifdef DEBIAN
 #define DEF_TERM        "x-terminal-emulator"
+#define DEF_TERM2       "xterm"
 #else
 #define DEF_TERM        "xterm"
+#define DEF_TERM2       "xterm"
 #endif
 
 /* readability stuff */
@@ -229,6 +231,7 @@ extern unsigned int     grabmask1;
 extern unsigned int     grabmask2;
 extern unsigned int     altmask;
 extern char             **opt_term;
+extern char             **opt_term2;
 extern int              opt_bw;
 extern int              opt_snap;
 #ifdef SOLIDDRAG
@@ -294,6 +297,7 @@ void maximise_client(Client *c, int action, int hv);
 void show_info(Client *c, unsigned int keycode);
 void sweep(Client *c);
 void next(void);
+void next_border(Client *c, int dirx, int diry, int step_over, int *borderx, int *bordery);
 #ifdef VWM
 void switch_vdesk(ScreenInfo *s, unsigned int v);
 #endif

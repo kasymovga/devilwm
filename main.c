@@ -47,6 +47,8 @@ unsigned int grabmask2 = Mod1Mask;
 unsigned int altmask = ShiftMask;
 static const char *const def_term[] = { DEF_TERM, NULL };
 char **opt_term = (char **)def_term;
+static const char *const def_term2[] = { DEF_TERM2, NULL };
+char **opt_term2 = (char **)def_term2;
 int          opt_bw = DEF_BW;
 int          opt_snap = 0;
 #ifdef SOLIDDRAG
@@ -82,6 +84,7 @@ static struct xconfig_option evilwm_options[] = {
 #endif
 	{ XCONFIG_INT,      "bw",           &opt_bw },
 	{ XCONFIG_STR_LIST, "term",         &opt_term },
+	{ XCONFIG_STR_LIST, "term2",        &opt_term2 },
 	{ XCONFIG_INT,      "snap",         &opt_snap },
 	{ XCONFIG_STRING,   "mask1",        &opt_grabmask1 },
 	{ XCONFIG_STRING,   "mask2",        &opt_grabmask2 },
@@ -110,7 +113,7 @@ static unsigned int parse_modifiers(char *s);
 #ifdef STDIO
 static void helptext(void) {
 	puts(
-"usage: evilwm [-display display] [-term termprog] [-fn fontname]\n"
+"usage: evilwm [-display display] [-term termprog] [-menu menuprog] [-fn fontname]\n"
 "              [-fg foreground]"
 #ifdef VWM
 " [-fc fixed]"

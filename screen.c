@@ -399,35 +399,143 @@ void maximise_client(Client *c, int action, int hv) {
 	discard_enter_events(c);
 }
 
+void next_border(Client *c, int dirx, int diry, int step_over, int *borderx, int *bordery) {
+	Client * c_iter;
+	struct list *iter;
+	int tx, ty, c_iter_height, c_iter_width, c_iter_x, c_iter_y;
+	int c_width = c->width + c->border * 2;
+	int c_height = c->height + c->border * 2;
+	int c_x = c->x - c->border;
+	int c_y = c->y - c->border;
+	int dummyx, dummyy;
+	if (!borderx)
+		borderx = &dummyx;
+
+	if (!bordery)
+		bordery = &dummyy;
+
+	if (dirx > 0)
+		*borderx = DisplayWidth(dpy, c->screen->screen);
+	else
+		*borderx = 0;
+
+	if (diry > 0)
+		*bordery = DisplayHeight(dpy, c->screen->screen);
+	else
+		*bordery = 0;
+
+	if (dirx) {
+		for (iter = clients_tab_order; iter; iter = iter->next) {
+			c_iter =iter->data;
+			if (c->screen != c_iter->screen || c_iter == c
+#ifdef VWM
+					|| c_iter->vdesk != c->vdesk
+#endif
+					)
+				continue;
+
+			c_iter_height = c_iter->height + c_iter->border * 2;
+			c_iter_width = c_iter->width + c_iter->border * 2;
+			c_iter_x = c_iter->x - c_iter->border;
+			c_iter_y = c_iter->y - c_iter->border;
+			if (
+					(c_iter_y <= c_y            && c_iter_y + c_iter_height >= c_y           ) ||
+					(c_iter_y <= c_y + c_height && c_iter_y + c_iter_height >= c_y + c_height) ||
+					(c_iter_y >= c_y            && c_iter_y + c_iter_height <= c_y + c_height)
+					) {
+				if (dirx > 0) {
+					tx = c_iter_x;
+					if (tx - step_over >= c_x + c_width && tx < *borderx)
+						*borderx = tx;
+
+				} else {
+					tx = c_iter_x + c_iter_width;
+					if (tx + step_over <= c_x && tx > *borderx)
+						*borderx = tx;
+
+				}
+			}
+		}
+		if (dirx > 0)
+			c_width = *borderx - c_x;
+		else {
+			c_width = c_width + c_x - *borderx;
+			c_x = *borderx;
+		}
+	}
+	if (diry)
+		for (iter = clients_tab_order; iter; iter = iter->next) {
+			c_iter=iter->data;
+			if (c->screen != c_iter->screen || c_iter == c
+#ifdef VWM
+					|| c_iter->vdesk != c->vdesk
+#endif
+			)
+				continue;
+
+			c_iter_height = c_iter->height + c_iter->border * 2;
+			c_iter_width = c_iter->width + c_iter->border * 2;
+			c_iter_x = c_iter->x - c_iter->border;
+			c_iter_y = c_iter->y - c_iter->border;
+			if (
+					(c_iter_x <= c_x           && c_iter_x + c_iter_width >= c_x          ) ||
+					(c_iter_x <= c_x + c_width && c_iter_x + c_iter_width >= c_x + c_width) ||
+					(c_iter_x >= c_x           && c_iter_x + c_iter_width <= c_x + c_width)
+					) {
+				if (diry > 0) {
+					ty = c_iter_y;
+					if (ty - step_over >= c_y + c_height && ty < *bordery)
+						*bordery = ty;
+				} else {
+					ty = c_iter_y + c_iter_height;
+					if (ty + step_over <= c_y && ty > *bordery)
+						*bordery = ty;
+				}
+			}
+		}
+}
+
 void next(void) {
 	struct list *newl = list_find(clients_tab_order, current);
+	ScreenInfo *current_screen = find_current_screen();
 	Client *newc = current;
-	do {
-		if (newl) {
+	for (;;) {
+		if (newl)
 			newl = newl->next;
-			if (!newl && !current)
+
+		if (!newl) {
+			if (!current)
+				return;
+
+			newl = clients_tab_order;
+		}
+
+		if (!newl) //List empty, nothing to do
+			return;
+
+		newc = newl->data;
+		if (newc == current) {
+			if (newc->screen != current_screen) { //Current window on other screen and current screen not have windows
+				newc = NULL;
+				break;
+			} else
 				return;
 		}
-		if (!newl)
-			newl = clients_tab_order;
-		if (!newl)
-			return;
-		newc = newl->data;
-		if (newc == current)
-			return;
-	}
+		if (newc->screen != current_screen) //Window from other screen, skip
+			continue;
 #ifdef VWM
 	/* NOTE: Checking against newc->screen->vdesk implies we can Alt+Tab
 	 * across screen boundaries.  Is this what we want? */
-	while ((!is_fixed(newc) && (newc->vdesk != newc->screen->vdesk)) || (newc->is_dock && !newc->screen->docks_visible));
-#else
-	while (0);
+		if ((!is_fixed(newc) && (newc->vdesk != newc->screen->vdesk)) || (newc->is_dock && !newc->screen->docks_visible))
+			continue;
 #endif
+		break;
+	}
+	select_client(newc);
 	if (!newc)
 		return;
 	client_show(newc);
-	client_raise(newc);
-	select_client(newc);
+	//client_raise(newc);
 #ifdef WARP_POINTER
 	setmouse(newc->window, newc->width + newc->border - 1,
 			newc->height + newc->border - 1);
@@ -543,12 +651,12 @@ static KeySym keys_to_grab[] = {
 	KEY_TOPLEFT, KEY_TOPRIGHT, KEY_BOTTOMLEFT, KEY_BOTTOMRIGHT,
 	KEY_LEFT, KEY_RIGHT, KEY_DOWN, KEY_UP,
 	KEY_LOWER, KEY_ALTLOWER, KEY_INFO, KEY_MAXVERT, KEY_MAX,
-	KEY_DOCK_TOGGLE
+	KEY_DOCK_TOGGLE, KEY_MAXHORZ, KEY_CENTER, KEY_NEXTSCREEN
 };
 #define NUM_GRABS (int)(sizeof(keys_to_grab) / sizeof(KeySym))
 
 static KeySym alt_keys_to_grab[] = {
-	KEY_KILL, KEY_LEFT, KEY_RIGHT, KEY_DOWN, KEY_UP
+	KEY_KILL, KEY_LEFT, KEY_RIGHT, KEY_DOWN, KEY_UP, KEY_TOPLEFT, KEY_TOPRIGHT, KEY_BOTTOMLEFT, KEY_BOTTOMRIGHT, KEY_NEW, KEY_QUITFROMWM, KEY_CENTER
 };
 #define NUM_ALT_GRABS (int)(sizeof(alt_keys_to_grab) / sizeof(KeySym))
 

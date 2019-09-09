@@ -9,6 +9,7 @@
 #include <X11/XKBlib.h>
 #include "evilwm.h"
 #include "log.h"
+#include <math.h>
 
 static int interruptibleXNextEvent(XEvent *event);
 
@@ -28,10 +29,82 @@ static void handle_key_event(XKeyEvent *e) {
 	Client *c;
 	int width_inc, height_inc;
 	ScreenInfo *current_screen = find_current_screen();
-
 	switch(key) {
+		case KEY_CENTER:
+			if (e->state & altmask) {
+				int windows_count = 0;
+				struct list *iter;
+				for (iter = clients_tab_order; iter; iter = iter->next) {
+					c = iter->data;
+					if (c->screen == current_screen && c->vdesk == current_screen->vdesk)
+						windows_count++;
+				}
+				if (!windows_count)
+					break;
+
+				select_client(NULL);
+				int display_width = DisplayWidth(dpy, current_screen->screen), display_height = DisplayHeight(dpy, current_screen->screen);
+				int width_count = ceil(sqrt(windows_count));
+				int height_count = ceil((float)windows_count / (float)width_count);
+				int width_bottom_count = windows_count%width_count;
+				if (!width_bottom_count)
+					width_bottom_count = width_count;
+
+				int window_width = display_width / width_count;
+				int window_height = display_height / height_count;
+				int window_bottom_width = display_width / width_bottom_count;
+				int window_bottom_height = display_height - ((height_count - 1) * window_height);
+				int window_right_width = display_width - ((width_count - 1) * window_width);
+				int window_bottom_right_width = display_width - ((width_bottom_count - 1) * window_bottom_width);
+				int i = 0, j = 0;
+				for (iter = clients_tab_order; iter; iter = iter->next) {
+					c = iter->data;
+					if (c->screen != current_screen)
+						continue;
+
+					if (c->vdesk != current_screen->vdesk)
+						continue;
+
+					if (j < height_count - 1) {
+						if (i < width_count - 1) {
+							c->x = i * window_width + c->border;
+							c->y = j * window_height + c->border;
+							c->width = window_width - c->border * 2;
+							c->height = window_height - c->border * 2;
+						} else {
+							c->x = i * window_width + c->border;
+							c->y = j * window_height + c->border;
+							c->width = window_right_width - c->border * 2;
+							c->height = window_height - c->border * 2;
+						}
+						i++;
+						if(i == width_count) {
+							i = 0;j++;
+						}
+					} else {
+						if (i < width_bottom_count - 1) {
+							c->x = i * window_bottom_width + c->border;
+							c->y = j * window_height + c->border;
+							c->width = window_bottom_width - c->border * 2;
+							c->height = window_bottom_height - c->border * 2;
+						} else {
+							c->x = i * window_bottom_width + c->border;
+							c->y = j * window_height + c->border;
+							c->width = window_bottom_right_width - c->border * 2;
+							c->height = window_bottom_height - c->border * 2;
+						}
+						i++;
+					}
+					moveresize(c);
+				}
+			}
+			break;
 		case KEY_NEW:
-			spawn((const char *const *)opt_term);
+			if (e->state & altmask)
+				spawn((const char *const *)opt_term2);
+			else
+				spawn((const char *const *)opt_term);
+
 			break;
 		case KEY_NEXT:
 			next();
@@ -45,6 +118,23 @@ static void handle_key_event(XKeyEvent *e) {
 				XUngrabKeyboard(dpy, CurrentTime);
 			}
 			ewmh_select_client(current);
+			break;
+		case KEY_NEXTSCREEN:
+			if (num_screens > 1) {
+				int i;
+				for (i = 0; i < num_screens; i++)
+					if (&screens[i] == current_screen)
+						break;
+
+				i++;
+				if (i >= num_screens)
+					i = 0;
+
+				XSetInputFocus(dpy, RootWindow(dpy, i), RevertToPointerRoot, CurrentTime);
+				setmouse(RootWindow(dpy, i), 0, 0);
+				next();
+				ewmh_select_client(current);
+			}
 			break;
 		case KEY_DOCK_TOGGLE:
 			set_docks_visible(current_screen, !current_screen->docks_visible);
@@ -70,6 +160,10 @@ static void handle_key_event(XKeyEvent *e) {
 			switch_vdesk(current_screen, current_screen->old_vdesk);
 			break;
 #endif
+		case KEY_QUITFROMWM:
+			if (e->state & altmask)
+				wm_exit = 1;
+
 		default: break;
 	}
 	c = current;
@@ -82,7 +176,9 @@ static void handle_key_event(XKeyEvent *e) {
 				if ((c->width - width_inc) >= c->min_width)
 					c->width -= width_inc;
 			} else {
-				c->x -= 16;
+				int bx;
+				next_border(c, -1, 0, 1, &bx, NULL);
+				c->x = bx + c->border;
 			}
 			goto move_client;
 		case KEY_DOWN:
@@ -90,7 +186,9 @@ static void handle_key_event(XKeyEvent *e) {
 				if (!c->max_height || (c->height + height_inc) <= c->max_height)
 					c->height += height_inc;
 			} else {
-				c->y += 16;
+				int by;
+				next_border(c, 0, 1, 1, NULL, &by);
+				c->y = by - c->height - c->border;
 			}
 			goto move_client;
 		case KEY_UP:
@@ -98,7 +196,9 @@ static void handle_key_event(XKeyEvent *e) {
 				if ((c->height - height_inc) >= c->min_height)
 					c->height -= height_inc;
 			} else {
-				c->y -= 16;
+				int by;
+				next_border(c, 0, -1, 1, NULL, &by);
+				c->y = by + c->border;
 			}
 			goto move_client;
 		case KEY_RIGHT:
@@ -106,29 +206,66 @@ static void handle_key_event(XKeyEvent *e) {
 				if (!c->max_width || (c->width + width_inc) <= c->max_width)
 					c->width += width_inc;
 			} else {
-				c->x += 16;
+				int bx;
+				next_border(c, 1, 0, 1, &bx, NULL);
+				c->x = bx - c->width - c->border;
 			}
 			goto move_client;
 		case KEY_TOPLEFT:
-			c->x = c->border;
-			c->y = c->border;
+			if (e->state & altmask) {
+				int bx, by;
+				next_border(c, -1, -1, 0, &bx, &by);
+				c->width = c->width + c->x - bx - c->border;
+				c->x = bx + c->border;
+				c->height = c->height - by + c->y - c->border;
+				c->y = by + c->border;
+			} else {
+				c->x = c->border;
+				c->y = c->border;
+			}
 			goto move_client;
 		case KEY_TOPRIGHT:
-			c->x = DisplayWidth(dpy, c->screen->screen)
-				- c->width-c->border;
-			c->y = c->border;
+			if (e->state & altmask) {
+				int bx, by;
+				next_border(c, 1, -1, 0, &bx, &by);
+				c->width = bx - c->x - c->border;
+				c->height = c->height + c->y - by - c->border;
+				c->y = by + c->border;
+			} else {
+				c->x = DisplayWidth(dpy, c->screen->screen) - c->width - c->border;
+				c->y = c->border;
+			}
 			goto move_client;
 		case KEY_BOTTOMLEFT:
-			c->x = c->border;
-			c->y = DisplayHeight(dpy, c->screen->screen)
-				- c->height-c->border;
+			if (e->state & altmask) {
+				int bx, by;
+				next_border(c, -1, 1, 0, &bx, &by);
+				c->width = c->width + c->x - bx - c->border;
+				c->height = by - c->y - c->border;
+				c->x = bx + c->border;
+			} else {
+				c->x=c->border;
+				c->y=DisplayHeight(dpy, c->screen->screen) - c->height - c->border;
+			}
 			goto move_client;
 		case KEY_BOTTOMRIGHT:
-			c->x = DisplayWidth(dpy, c->screen->screen)
-				- c->width-c->border;
-			c->y = DisplayHeight(dpy, c->screen->screen)
-				- c->height-c->border;
+			if (e->state & altmask) {
+				int bx, by;
+				next_border(c, 1, 1, 0, &bx, &by);
+				c->width = bx - c->x - c->border;
+				c->height = by - c->y - c->border;
+			} else {
+				c->x = DisplayWidth(dpy, c->screen->screen) - c->width - c->border;
+				c->y = DisplayHeight(dpy, c->screen->screen) - c->height - c->border;
+			}
 			goto move_client;
+		case KEY_CENTER:
+			if(!(e->state & altmask)) {
+				c->y=(DisplayHeight(dpy,c->screen->screen)-c->height)/2;
+				c->x=(DisplayWidth(dpy,c->screen->screen)-c->width)/2;
+				goto move_client;
+			}
+			break;
 		case KEY_KILL:
 			send_wm_delete(c, e->state & altmask);
 			break;
@@ -143,6 +280,9 @@ static void handle_key_event(XKeyEvent *e) {
 			break;
 		case KEY_MAXVERT:
 			maximise_client(c, NET_WM_STATE_TOGGLE, MAXIMISE_VERT);
+			break;
+		case KEY_MAXHORZ:
+			maximise_client(c, NET_WM_STATE_TOGGLE, MAXIMISE_HORZ);
 			break;
 #ifdef VWM
 		case KEY_FIX:

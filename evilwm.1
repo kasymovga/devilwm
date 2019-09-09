@@ -5,6 +5,7 @@ evilwm \- Minimalist Window Manager for X
 \fBevilwm\fP
 [ \fB\-display\fP \fIdisplay\fP ]
 [ \fB\-term\fP \fItermprog\fP ]
+[ \fB\-term2\fP \fItermprog2\fP ]
 [ \fB\-fn\fP \fIfontname\fP ]
 [ \fB\-fg\fP \fIforeground-colour\fP ]
 [ \fB\-fc\fP \fIfixed-colour\fP ]
@@ -50,20 +51,21 @@ pressing a key. Available functions are:
 .TP
 Return
 Spawn new terminal.
+Hold Shift to spawn terminal defined as term2.
 .TP
 Escape
 Delete current window.  Hold Shift as well to force kill a client.
 .TP
-Insert
+P
 Lower current window.
 .TP
 H, J, K, L
-Move window left, down, up or right (16 pixels).  Holding Shift resizes the
+Move window left, down, up or right. Holding Shift resizes the
 window instead.
 .TP
 Y, U, B, N
 Move window to top-left, top-right, bottom-left or
-bottom-right of screen.
+bottom-right of screen. Holding Shift resizes the window instead.
 .TP
 I
 Show information about current window.
@@ -82,6 +84,9 @@ If compiled with virtual desktop support, these functions are also available:
 F
 Fix or unfix current window.
 .TP
+O
+Place window in center. Hold Shift to tile all windows.
+.TP
 1--8
 Switch virtual desktop.
 .TP
@@ -93,13 +98,15 @@ Next virtual desktop.
 .TP
 A
 Switch to the most recently unmapped virtual desktop.
+.TP
+S
+Switch to the next X11 screen.
+.TP
+Q
+With Shift quit from window manager.
 .PP
 In addition to the above, Alt+Tab can be used to cycle through windows
 on screen.
-.PP
-To make
-.B evilwm
-exit, you have to kill the process.
 .SH OPTIONS
 .TP
 \-display \fIdisplay\fP
@@ -110,6 +117,12 @@ specifies an alternative program to run when spawning a new terminal (defaults
 to xterm, or x\-terminal\-emulator in Debian).  Separate arguments with
 whitespace, and escape needed whitespace with a backslash.  Remember that
 special characters will also need to be protected from the shell.
+.TP
+\-term2 \fItermprog2\fP
+specifies an secondary program to run when spawning a new terminal (defaults
+to xterm).  Separate arguments with whitespace, and escape needed whitespace
+with a backslash.  Remember that special characters will also need to be
+protected from the shell.
 .TP
 \-fn \fIfontname\fP
 specify a font to use when resizing or displaying window titles.
