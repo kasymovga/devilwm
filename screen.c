@@ -495,45 +495,37 @@ void next_border(Client *c, int dirx, int diry, int step_over, int *borderx, int
 		}
 }
 
+static Client *next_find(struct list *start, struct list *end, ScreenInfo *screen) {
+	struct Client *c;
+	for (struct list *l = start; l; l = l->next) {
+		c = l->data;
+		if (c->screen == screen && ((!c->is_dock || c->screen->docks_visible)
+#ifdef VWM
+				&& (is_fixed(c) || c->vdesk == c->screen->vdesk)
+#endif
+		))
+			return c;
+
+		if (l == end)
+			return NULL;
+	}
+	return NULL;
+}
+
 void next(void) {
 	struct list *newl = list_find(clients_tab_order, current);
 	ScreenInfo *current_screen = find_current_screen();
 	Client *newc = current;
-	for (;;) {
-		if (newl)
-			newl = newl->next;
+	if (newl)
+		newc = next_find(newl->next, NULL, current_screen);
 
-		if (!newl) {
-			if (!current)
-				return;
+	if (!newc)
+		newc = next_find(clients_tab_order, newl, current_screen);
 
-			newl = clients_tab_order;
-		}
-
-		if (!newl) //List empty, nothing to do
-			return;
-
-		newc = newl->data;
-		if (newc == current) {
-			if (newc->screen != current_screen) { //Current window on other screen and current screen not have windows
-				newc = NULL;
-				break;
-			} else
-				return;
-		}
-		if (newc->screen != current_screen) //Window from other screen, skip
-			continue;
-#ifdef VWM
-	/* NOTE: Checking against newc->screen->vdesk implies we can Alt+Tab
-	 * across screen boundaries.  Is this what we want? */
-		if ((!is_fixed(newc) && (newc->vdesk != newc->screen->vdesk)) || (newc->is_dock && !newc->screen->docks_visible))
-			continue;
-#endif
-		break;
-	}
 	select_client(newc);
 	if (!newc)
 		return;
+
 	client_show(newc);
 	//client_raise(newc);
 #ifdef WARP_POINTER
