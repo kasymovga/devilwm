@@ -551,7 +551,7 @@ void next_border(Client *c, int dirx, int diry, int step_over, int *borderx, int
 		}
 		for (int i = 0; i < monitors_count; i++) {
 			if (diry > 0) {
-				if (monitors[i].y + monitors[i].height > c_y + c_width && monitors[i].y + monitors[i].height < *bordery)
+				if (monitors[i].y + monitors[i].height > c_y + c_height && monitors[i].y + monitors[i].height < *bordery)
 					*bordery = monitors[i].y + monitors[i].height;
 			} else {
 				if (monitors[i].y < c_y && monitors[i].y > *bordery)
