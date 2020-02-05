@@ -10,6 +10,8 @@
 
 #ifdef INFOBANNER
 Window info_window = None;
+Monitor *monitors = NULL;
+int monitors_count = 0;
 
 static void create_info_window(Client *c);
 static void update_info_window(Client *c);
@@ -21,6 +23,49 @@ static void create_info_window(Client *c) {
 			0, c->screen->fg.pixel, c->screen->fg.pixel);
 	XMapRaised(dpy, info_window);
 	update_info_window(c);
+}
+
+void find_monitors(Client *c) {
+#ifdef RANDR
+	int monitors_new_count;
+	XRRMonitorInfo *xmonitors = XRRGetMonitors(dpy, c->screen->root, 0, &monitors_new_count);
+	if (monitors_new_count > monitors_count) {
+		free(monitors);
+		monitors = malloc(sizeof(struct Monitor) * monitors_new_count);
+		monitors_count = monitors_new_count;
+	}
+	for (int i = 0; i < monitors_new_count; i++) {
+		monitors[i].x = xmonitors[i].x;
+		monitors[i].y = xmonitors[i].y;
+		monitors[i].width = xmonitors[i].width;
+		monitors[i].height = xmonitors[i].height;
+	}
+	if (monitors_new_count) {
+		XFree(xmonitors);
+		return;
+	}
+#endif
+	if (!monitors) {
+		monitors = malloc(sizeof(struct Monitor));
+	}
+	monitors[0].x = 0;
+	monitors[0].y = 0;
+	monitors[0].width = DisplayWidth(dpy, c->screen->screen);
+	monitors[0].height = DisplayHeight(dpy, c->screen->screen);
+}
+
+Monitor *find_monitor(Client *c) {
+	find_monitors(c);
+	for (int i = 0; i < monitors_count; i++) {
+		if (monitors[i].x + monitors[i].width < c->x
+				|| monitors[i].x >= c->x + c->width
+				|| monitors[i].y >= c->y + c->height
+				|| monitors[i].y + monitors[i].width < c->y)
+			continue;
+
+		return &monitors[i];
+	}
+	return &monitors[0];
 }
 
 static void update_info_window(Client *c) {
@@ -344,6 +389,7 @@ void moveresize(Client *c) {
 }
 
 void maximise_client(Client *c, int action, int hv) {
+	Monitor *monitor = find_monitor(c);
 	if (hv & MAXIMISE_HORZ) {
 		if (c->oldw) {
 			if (action == NET_WM_STATE_REMOVE
@@ -359,8 +405,8 @@ void maximise_client(Client *c, int action, int hv) {
 				unsigned long props[2];
 				c->oldx = c->x;
 				c->oldw = c->width;
-				c->x = 0;
-				c->width = DisplayWidth(dpy, c->screen->screen);
+				c->x = monitor->x;
+				c->width = monitor->width;
 				props[0] = c->oldx;
 				props[1] = c->oldw;
 				XChangeProperty(dpy, c->window, xa_evilwm_unmaximised_horz,
@@ -384,8 +430,8 @@ void maximise_client(Client *c, int action, int hv) {
 				unsigned long props[2];
 				c->oldy = c->y;
 				c->oldh = c->height;
-				c->y = 0;
-				c->height = DisplayHeight(dpy, c->screen->screen);
+				c->y = monitor->y;
+				c->height = monitor->height;
 				props[0] = c->oldy;
 				props[1] = c->oldh;
 				XChangeProperty(dpy, c->window, xa_evilwm_unmaximised_vert,
@@ -408,6 +454,7 @@ void next_border(Client *c, int dirx, int diry, int step_over, int *borderx, int
 	int c_x = c->x - c->border;
 	int c_y = c->y - c->border;
 	int dummyx, dummyy;
+	find_monitors(c);
 	if (!borderx)
 		borderx = &dummyx;
 
@@ -456,6 +503,15 @@ void next_border(Client *c, int dirx, int diry, int step_over, int *borderx, int
 				}
 			}
 		}
+		for (int i = 0; i < monitors_count; i++) {
+			if (dirx > 0) {
+				if (monitors[i].x + monitors[i].width > c_x + c_width && monitors[i].x + monitors[i].width < *borderx)
+					*borderx = monitors[i].x + monitors[i].width;
+			} else {
+				if (monitors[i].x < c_x && monitors[i].x > *borderx)
+					*borderx = monitors[i].x;
+			}
+		}
 		if (dirx > 0)
 			c_width = *borderx - c_x;
 		else {
@@ -463,7 +519,7 @@ void next_border(Client *c, int dirx, int diry, int step_over, int *borderx, int
 			c_x = *borderx;
 		}
 	}
-	if (diry)
+	if (diry) {
 		for (iter = clients_tab_order; iter; iter = iter->next) {
 			c_iter=iter->data;
 			if (c->screen != c_iter->screen || c_iter == c
@@ -493,6 +549,16 @@ void next_border(Client *c, int dirx, int diry, int step_over, int *borderx, int
 				}
 			}
 		}
+		for (int i = 0; i < monitors_count; i++) {
+			if (diry > 0) {
+				if (monitors[i].y + monitors[i].height > c_y + c_width && monitors[i].y + monitors[i].height < *bordery)
+					*bordery = monitors[i].y + monitors[i].height;
+			} else {
+				if (monitors[i].y < c_y && monitors[i].y > *bordery)
+					*bordery = monitors[i].y;
+			}
+		}
+	}
 }
 
 static Client *next_find(struct list *start, struct list *end, ScreenInfo *screen) {

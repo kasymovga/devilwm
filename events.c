@@ -261,8 +261,9 @@ static void handle_key_event(XKeyEvent *e) {
 			goto move_client;
 		case KEY_CENTER:
 			if(!(e->state & altmask)) {
-				c->y=(DisplayHeight(dpy,c->screen->screen)-c->height)/2;
-				c->x=(DisplayWidth(dpy,c->screen->screen)-c->width)/2;
+				Monitor *monitor = find_monitor(c);
+				c->x=monitor->x + (monitor->width - c->width) / 2;
+				c->y=monitor->y + (monitor->height - c->height) / 2;
 				goto move_client;
 			}
 			break;

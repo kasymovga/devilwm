@@ -172,6 +172,11 @@ struct Application {
 #endif
 };
 
+typedef struct Monitor Monitor;
+struct Monitor {
+	int x, y, width, height;
+};
+
 /* Declarations for global variables in main.c */
 
 /* Commonly used X information */
@@ -187,6 +192,8 @@ extern int          have_shape, shape_event;
 #ifdef RANDR
 extern int          have_randr, randr_event_base;
 #endif
+extern Monitor *monitors;
+extern int monitors_count;
 
 /* Standard X protocol atoms */
 extern Atom xa_wm_state;
@@ -293,6 +300,8 @@ void get_window_type(Client *c);
 
 void drag(Client *c);
 void moveresize(Client *c);
+void find_monitors(Client *c);
+Monitor *find_monitor(Client *c);
 void maximise_client(Client *c, int action, int hv);
 void show_info(Client *c, unsigned int keycode);
 void sweep(Client *c);
