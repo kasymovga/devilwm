@@ -223,7 +223,7 @@ void ewmh_init_screen(ScreenInfo *s) {
 			(unsigned char *)&s->supporting, 1);
 	XChangeProperty(dpy, s->supporting, xa_net_wm_name,
 			XA_STRING, 8, PropModeReplace,
-			(const unsigned char *)"evilwm", 6);
+			(const unsigned char *)"devilwm", 6);
 	XChangeProperty(dpy, s->supporting, xa_net_wm_pid,
 			XA_CARDINAL, 32, PropModeReplace,
 			(unsigned char *)&pid, 1);
