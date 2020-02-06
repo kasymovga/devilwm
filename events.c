@@ -220,8 +220,9 @@ static void handle_key_event(XKeyEvent *e) {
 				c->height = c->height - by + c->y - c->border;
 				c->y = by + c->border;
 			} else {
-				c->x = c->border;
-				c->y = c->border;
+				Monitor *monitor = find_monitor(c);
+				c->x = monitor->x + c->border;
+				c->y = monitor->y + c->border;
 			}
 			goto move_client;
 		case KEY_TOPRIGHT:
@@ -232,8 +233,9 @@ static void handle_key_event(XKeyEvent *e) {
 				c->height = c->height + c->y - by - c->border;
 				c->y = by + c->border;
 			} else {
-				c->x = DisplayWidth(dpy, c->screen->screen) - c->width - c->border;
-				c->y = c->border;
+				Monitor *monitor = find_monitor(c);
+				c->x = monitor->x + monitor->width - c->width - c->border;
+				c->y = monitor->y + c->border;
 			}
 			goto move_client;
 		case KEY_BOTTOMLEFT:
@@ -244,8 +246,9 @@ static void handle_key_event(XKeyEvent *e) {
 				c->height = by - c->y - c->border;
 				c->x = bx + c->border;
 			} else {
-				c->x=c->border;
-				c->y=DisplayHeight(dpy, c->screen->screen) - c->height - c->border;
+				Monitor *monitor = find_monitor(c);
+				c->x = monitor->x + c->border;
+				c->y = monitor->y + monitor->height - c->height - c->border;
 			}
 			goto move_client;
 		case KEY_BOTTOMRIGHT:
@@ -255,8 +258,9 @@ static void handle_key_event(XKeyEvent *e) {
 				c->width = bx - c->x - c->border;
 				c->height = by - c->y - c->border;
 			} else {
-				c->x = DisplayWidth(dpy, c->screen->screen) - c->width - c->border;
-				c->y = DisplayHeight(dpy, c->screen->screen) - c->height - c->border;
+				Monitor *monitor = find_monitor(c);
+				c->x = monitor->x + monitor->width - c->width - c->border;
+				c->y = monitor->y + monitor->height - c->height - c->border;
 			}
 			goto move_client;
 		case KEY_CENTER:
