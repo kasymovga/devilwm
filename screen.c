@@ -47,6 +47,7 @@ void find_monitors(Client *c) {
 #endif
 	if (!monitors) {
 		monitors = malloc(sizeof(struct Monitor));
+		monitors_count = 1;
 	}
 	monitors[0].x = 0;
 	monitors[0].y = 0;
