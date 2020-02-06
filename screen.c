@@ -27,8 +27,8 @@ static void create_info_window(Client *c) {
 
 void find_monitors(Client *c) {
 #ifdef RANDR
-	int monitors_new_count;
 	if (have_randr) {
+		int monitors_new_count;
 		XRRMonitorInfo *xmonitors = XRRGetMonitors(dpy, c->screen->root, 0, &monitors_new_count);
 		if (monitors_new_count > monitors_count) {
 			free(monitors);
@@ -49,8 +49,8 @@ void find_monitors(Client *c) {
 #endif
 	if (!monitors) {
 		monitors = malloc(sizeof(struct Monitor));
-		monitors_count = 1;
 	}
+	monitors_count = 1;
 	monitors[0].x = 0;
 	monitors[0].y = 0;
 	monitors[0].width = DisplayWidth(dpy, c->screen->screen);
