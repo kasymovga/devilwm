@@ -12,6 +12,7 @@
 Window info_window = None;
 Monitor *monitors = NULL;
 int monitors_count = 0;
+int monitors_size = 0;
 
 static void create_info_window(Client *c);
 static void update_info_window(Client *c);
@@ -25,32 +26,50 @@ static void create_info_window(Client *c) {
 	update_info_window(c);
 }
 
+static void monitors_realloc(void) {
+	static Monitor monitor_static;
+	if (!monitors_count)
+		return;
+
+	if (monitors_size < monitors_count) {
+		if (monitors != &monitor_static) {
+			free(monitors);
+		}
+		monitors = malloc(sizeof(struct Monitor) * monitors_count);
+		if (monitors)
+			monitors_size = monitors_count;
+		else {
+			monitors_size = 0;
+		}
+	}
+	if (monitors) {
+		return;
+	}
+	//Canot allocate memory
+	LOG_ERROR("out of memory\n");
+	monitors_count = 1;
+	monitors = &monitor_static;
+}
+
 void find_monitors(Client *c) {
 #ifdef RANDR
 	if (have_randr) {
-		int monitors_new_count;
-		XRRMonitorInfo *xmonitors = XRRGetMonitors(dpy, c->screen->root, 0, &monitors_new_count);
-		if (monitors_new_count > monitors_count) {
-			free(monitors);
-			monitors = malloc(sizeof(struct Monitor) * monitors_new_count);
-			monitors_count = monitors_new_count;
-		}
-		for (int i = 0; i < monitors_new_count; i++) {
+		XRRMonitorInfo *xmonitors = XRRGetMonitors(dpy, c->screen->root, 0, &monitors_count);
+		monitors_realloc();
+		for (int i = 0; i < monitors_count; i++) {
 			monitors[i].x = xmonitors[i].x;
 			monitors[i].y = xmonitors[i].y;
 			monitors[i].width = xmonitors[i].width;
 			monitors[i].height = xmonitors[i].height;
 		}
-		if (monitors_new_count) {
+		if (monitors_count) {
 			XRRFreeMonitors(xmonitors);
 			return;
 		}
 	}
 #endif
-	if (!monitors) {
-		monitors = malloc(sizeof(struct Monitor));
-	}
 	monitors_count = 1;
+	monitors_realloc();
 	monitors[0].x = 0;
 	monitors[0].y = 0;
 	monitors[0].width = DisplayWidth(dpy, c->screen->screen);
