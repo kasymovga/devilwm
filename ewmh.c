@@ -67,11 +67,6 @@ static Atom xa_net_wm_action_close;
 static Atom xa_net_wm_pid;
 Atom xa_net_frame_extents;
 
-/* Maintain a reasonably sized allocated block of memory for lists
- * of windows (for feeding to XChangeProperty in one hit). */
-static Window *window_array = NULL;
-static Window *alloc_window_array(void);
-
 void ewmh_init(void) {
 	/* Standard X protocol atoms */
 	xa_wm_state = XInternAtom(dpy, "WM_STATE", False);
@@ -285,33 +280,25 @@ void ewmh_select_client(Client *c) {
 }
 
 void ewmh_set_net_client_list(ScreenInfo *s) {
-	Window *windows = alloc_window_array();
 	struct list *iter;
-	int i = 0;
 	for (iter = clients_mapping_order; iter; iter = iter->next) {
 		Client *c = iter->data;
-		if (c->screen == s) {
-			windows[i++] = c->window;
-		}
+		XChangeProperty(dpy, s->root, xa_net_client_list,
+				XA_WINDOW, 32, PropModeReplace,
+				(unsigned char *)&c->window, 1);
 	}
-	XChangeProperty(dpy, s->root, xa_net_client_list,
-			XA_WINDOW, 32, PropModeReplace,
-			(unsigned char *)windows, i);
 }
 
 void ewmh_set_net_client_list_stacking(ScreenInfo *s) {
-	Window *windows = alloc_window_array();
 	struct list *iter;
-	int i = 0;
 	for (iter = clients_stacking_order; iter; iter = iter->next) {
 		Client *c = iter->data;
 		if (c->screen == s) {
-			windows[i++] = c->window;
+			XChangeProperty(dpy, s->root, xa_net_client_list_stacking,
+					XA_WINDOW, 32, PropModeReplace,
+					(unsigned char *)&c->window, 1);
 		}
 	}
-	XChangeProperty(dpy, s->root, xa_net_client_list_stacking,
-			XA_WINDOW, 32, PropModeReplace,
-			(unsigned char *)windows, i);
 }
 
 #ifdef VWM
@@ -385,17 +372,4 @@ void ewmh_set_net_frame_extents(Window w) {
 	XChangeProperty(dpy, w, xa_net_frame_extents,
 			XA_CARDINAL, 32, PropModeReplace,
 			(unsigned char *)&extents, 4);
-}
-
-static Window *alloc_window_array(void) {
-	struct list *iter;
-	unsigned int count = 0;
-	for (iter = clients_mapping_order; iter; iter = iter->next) {
-		count++;
-	}
-	if (count == 0) count++;
-	/* Round up to next block of 128 */
-	count = (count + 127) & ~127;
-	window_array = realloc(window_array, count * sizeof(Window));
-	return window_array;
 }
