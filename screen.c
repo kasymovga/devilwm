@@ -28,21 +28,23 @@ static void create_info_window(Client *c) {
 void find_monitors(Client *c) {
 #ifdef RANDR
 	int monitors_new_count;
-	XRRMonitorInfo *xmonitors = XRRGetMonitors(dpy, c->screen->root, 0, &monitors_new_count);
-	if (monitors_new_count > monitors_count) {
-		free(monitors);
-		monitors = malloc(sizeof(struct Monitor) * monitors_new_count);
-		monitors_count = monitors_new_count;
-	}
-	for (int i = 0; i < monitors_new_count; i++) {
-		monitors[i].x = xmonitors[i].x;
-		monitors[i].y = xmonitors[i].y;
-		monitors[i].width = xmonitors[i].width;
-		monitors[i].height = xmonitors[i].height;
-	}
-	if (monitors_new_count) {
-		XFree(xmonitors);
-		return;
+	if (have_randr) {
+		XRRMonitorInfo *xmonitors = XRRGetMonitors(dpy, c->screen->root, 0, &monitors_new_count);
+		if (monitors_new_count > monitors_count) {
+			free(monitors);
+			monitors = malloc(sizeof(struct Monitor) * monitors_new_count);
+			monitors_count = monitors_new_count;
+		}
+		for (int i = 0; i < monitors_new_count; i++) {
+			monitors[i].x = xmonitors[i].x;
+			monitors[i].y = xmonitors[i].y;
+			monitors[i].width = xmonitors[i].width;
+			monitors[i].height = xmonitors[i].height;
+		}
+		if (monitors_new_count) {
+			XRRFreeMonitors(xmonitors);
+			return;
+		}
 	}
 #endif
 	if (!monitors) {
