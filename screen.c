@@ -412,6 +412,7 @@ void moveresize(Client *c) {
 
 void maximise_client(Client *c, int action, int hv) {
 	Monitor *monitor = find_monitor(c);
+	int was_fullscreen = (c->oldw || c->oldh);
 	if (hv & MAXIMISE_HORZ) {
 		if (c->oldw) {
 			if (action == NET_WM_STATE_REMOVE
@@ -461,6 +462,14 @@ void maximise_client(Client *c, int action, int hv) {
 						(unsigned char *)&props, 2);
 			}
 		}
+	}
+	if (!was_fullscreen && (c->oldw || c->oldh)) {
+		c->nomaxborder = c->border;
+		c->border = 0;
+		XSetWindowBorderWidth(dpy, c->parent, c->border);
+	} else if (was_fullscreen && !c->oldw && !c->oldh) {
+		c->border = c->nomaxborder;
+		XSetWindowBorderWidth(dpy, c->parent, c->border);
 	}
 	ewmh_set_net_wm_state(c);
 	moveresize(c);

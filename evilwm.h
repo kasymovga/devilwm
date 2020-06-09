@@ -152,6 +152,7 @@ struct Client {
 	int             win_gravity_hint;
 	int             win_gravity;
 	int             old_border;
+	int             nomaxborder;
 #ifdef VWM
 	unsigned int vdesk;
 #endif
