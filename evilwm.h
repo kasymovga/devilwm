@@ -54,6 +54,7 @@ typedef struct {
 #define DEF_TERM        "xterm"
 #define DEF_TERM2       "xterm"
 #endif
+#define DEF_STARTUP     ".devilwm_startup"
 
 /* readability stuff */
 

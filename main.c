@@ -54,6 +54,8 @@ int          opt_snap = 0;
 #ifdef SOLIDDRAG
 int          no_solid_drag = 0;  /* use solid drag by default */
 #endif
+static const char *const def_startup[] = { DEF_STARTUP, NULL };
+char **opt_startup = (char **)def_startup;
 struct list  *applications = NULL;
 
 /* Client tracking information */
@@ -103,6 +105,7 @@ static struct xconfig_option evilwm_options[] = {
 #ifdef SOLIDDRAG
 	{ XCONFIG_BOOL,     "nosoliddrag",  &no_solid_drag },
 #endif
+	{ XCONFIG_STRING,   "startup",      &opt_startup },
 	{ XCONFIG_END, NULL, NULL }
 };
 
@@ -185,6 +188,7 @@ int main(int argc, char *argv[]) {
 	setup_display();
 
 	event_main_loop();
+	spawn((const char * const*)opt_startup);
 
 	/* Quit Nicely */
 	while (clients_stacking_order)
